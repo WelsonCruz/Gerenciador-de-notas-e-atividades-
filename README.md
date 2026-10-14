@@ -160,4 +160,3 @@ Nela, estão disponíveis:
 
 📂 **Localização:** [`docs/`](./docs/)
 
-A documentação é disponibilizada junto ao código-fonte para facilitar a compreensão, manutenção e avaliação do projeto.
