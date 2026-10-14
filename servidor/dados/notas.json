@@ -1,8 +1,26 @@
 [
   {
     "id": 1,
-    "aluno_id": 1,
+    "aluno_id": 2,
     "atividade_id": 1,
+    "valor": 2.0
+  },
+  {
+    "id": 2,
+    "aluno_id": 2,
+    "atividade_id": 2,
     "valor": 5.0
+  },
+  {
+    "id": 3,
+    "aluno_id": 3,
+    "atividade_id": 1,
+    "valor": 1.0
+  },
+  {
+    "id": 4,
+    "aluno_id": 3,
+    "atividade_id": 2,
+    "valor": 10.0
   }
 ]

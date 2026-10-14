@@ -1,8 +1,14 @@
 [
   {
     "id": 1,
-    "titulo": "Trabalho XXX",
-    "descricao": "Trabalho",
+    "titulo": "Atividade de recuperação",
+    "descricao": "",
+    "valor_maximo": 2.0
+  },
+  {
+    "id": 2,
+    "titulo": "AP1",
+    "descricao": "",
     "valor_maximo": 10.0
   }
 ]

@@ -1,7 +1,12 @@
 [
   {
-    "id": 1,
-    "nome": "asa",
-    "matricula": "21321"
+    "id": 2,
+    "nome": "Yuri Alberto",
+    "matricula": "123456"
+  },
+  {
+    "id": 3,
+    "nome": "Garro",
+    "matricula": "676767"
   }
 ]

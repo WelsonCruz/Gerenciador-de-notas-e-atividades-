@@ -146,3 +146,18 @@ Requisitos e condições de aceitação: [docs/REQUISITOS.md](docs/REQUISITOS.md
 - Alterar a nota máxima de uma atividade recalcula proporcionalmente as médias existentes; não é permitido defini-la abaixo de uma nota já atribuída.
 - A interface usa chamadas HTTP síncronas com timeout: para este projeto local, é uma simplificação intencional.
 - A organização foi baseada no guia fornecido. O repositório de referência indicado não estava acessível para confirmar os nomes e o estilo exato de suas pastas.
+
+## 8. Documentação do Projeto
+
+A documentação completa do projeto está disponível na pasta **`docs/`** deste repositório.
+
+Nela, estão disponíveis:
+
+- **Diagramas de Classes:** representação da estrutura e dos relacionamentos entre as classes do cliente e do servidor.
+- **Requisitos Funcionais:** descrição das funcionalidades que o sistema deve oferecer.
+- **Requisitos Não Funcionais:** definição dos critérios de qualidade, desempenho e segurança do sistema.
+- **Condições de Aceitação:** critérios que devem ser atendidos para considerar as funcionalidades implementadas corretamente.
+
+📂 **Localização:** [`docs/`](./docs/)
+
+A documentação é disponibilizada junto ao código-fonte para facilitar a compreensão, manutenção e avaliação do projeto.
