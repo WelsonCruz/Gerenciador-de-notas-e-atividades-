@@ -4,8 +4,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from servidor.factories import FabricaRegistrosPadrao
 from servidor.repository import ErroRepositorio
 from servidor.services import ErroNegocio, GerenciadorService
+from servidor.strategies import EstrategiaMedia, MediaNormalizada
 
 
 class TesteRegras(unittest.TestCase):
@@ -51,6 +53,12 @@ class TesteRegras(unittest.TestCase):
         with self.assertRaises(ErroNegocio):
             self.servico.criar_atividade({"titulo": "", "valor_maximo": 10})
 
+    def test_matricula_deve_ser_numerica(self):
+        with self.assertRaises(ErroNegocio):
+            self.servico.criar_aluno({"nome": "Ana", "matricula": "A-100"})
+        aluno = self.servico.criar_aluno({"nome": "Bia", "matricula": "00100"})
+        self.assertEqual(aluno["matricula"], "00100")
+
     def test_nota_fora_da_faixa_e_referencias_invalidas(self):
         aluno = self.aluno()
         atividade = self.atividade(10)
@@ -85,6 +93,15 @@ class TesteRegras(unittest.TestCase):
         self.servico.criar_nota({"aluno_id": a["id"], "atividade_id": t2["id"], "valor": 3})
         self.assertEqual(self.servico.media_do_aluno(a["id"])["media"], 7)
         self.assertEqual(self.servico.media_do_aluno(a["id"])["quantidade_notas"], 2)
+
+    def test_media_de_duas_atividades_dez_e_oito_meio(self):
+        aluno = self.aluno()
+        primeira = self.atividade(10)
+        segunda = self.servico.criar_atividade({"titulo": "Trabalho", "valor_maximo": 10})
+        self.servico.criar_nota({"aluno_id": aluno["id"], "atividade_id": primeira["id"], "valor": 10})
+        self.servico.criar_nota({"aluno_id": aluno["id"], "atividade_id": segunda["id"], "valor": 8.5})
+        resultado = self.servico.media_do_aluno(aluno["id"])
+        self.assertEqual(resultado["media"], 9.25)
 
     def test_exclusao_em_cascata(self):
         a = self.aluno()
@@ -125,6 +142,38 @@ class TesteRegras(unittest.TestCase):
         self.servico.criar_nota({"aluno_id": a["id"], "atividade_id": t["id"], "valor": 9})
         with self.assertRaises(ErroNegocio):
             self.servico.editar_atividade(t["id"], {"titulo": "Prova", "descricao": "", "valor_maximo": 8})
+
+    def test_factory_method_cria_modelos_de_dominio(self):
+        fabrica = FabricaRegistrosPadrao()
+        aluno = fabrica.criar_aluno({"id": 1, "nome": "Ana", "matricula": "100"})
+        atividade = fabrica.criar_atividade({"id": 2, "titulo": "Prova", "descricao": "", "valor_maximo": 10})
+        nota = fabrica.criar_nota({"id": 3, "aluno_id": 1, "atividade_id": 2, "valor": 8})
+        self.assertEqual((aluno.nome, atividade.titulo, nota.valor), ("Ana", "Prova", 8))
+
+    def test_service_delega_criacao_para_factory_method(self):
+        class FabricaEspia(FabricaRegistrosPadrao):
+            def __init__(self):
+                self.chamadas = []
+
+            def criar_aluno(self, registro):
+                self.chamadas.append("aluno")
+                return super().criar_aluno(registro)
+
+        fabrica = FabricaEspia()
+        servico = GerenciadorService(self.pasta, fabrica=fabrica)
+        servico.criar_aluno({"nome": "Ana", "matricula": "100"})
+        self.assertEqual(fabrica.chamadas, ["aluno"])
+
+    def test_strategy_de_media_e_substituivel(self):
+        class MediaComBonus(EstrategiaMedia):
+            def calcular(self, notas):
+                return MediaNormalizada().calcular(notas) + 1 if notas else None
+
+        servico = GerenciadorService(self.pasta, estrategia_media=MediaComBonus())
+        aluno = self.aluno()
+        atividade = self.atividade()
+        servico.criar_nota({"aluno_id": aluno["id"], "atividade_id": atividade["id"], "valor": 8})
+        self.assertEqual(servico.media_do_aluno(aluno["id"])["media"], 9)
 
 
 if __name__ == "__main__":

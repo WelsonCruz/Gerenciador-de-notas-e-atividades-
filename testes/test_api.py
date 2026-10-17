@@ -40,6 +40,10 @@ class TesteAPI(unittest.TestCase):
         self.assertEqual(c.post("/alunos", data="texto", content_type="text/plain").status_code, 400)
         self.assertEqual(c.get("/alunos/999").status_code, 404)
         self.assertEqual(c.post("/alunos", json={"nome": "Ana", "matricula": "1"}).status_code, 201)
+        criterio_invalido = c.get("/alunos/1/media?criterio=invalida")
+        self.assertEqual(criterio_invalido.status_code, 400)
+        self.assertIn("Critério de média", criterio_invalido.json["erro"])
+        self.assertEqual(c.post("/alunos", json={"nome": "Texto", "matricula": "A-1"}).status_code, 400)
         self.assertEqual(c.post("/alunos", json={"nome": "Bia", "matricula": "1"}).status_code, 409)
         self.assertEqual(c.post("/notas", json={"aluno_id": 1, "atividade_id": 999, "valor": 7}).status_code, 404)
 

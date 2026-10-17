@@ -17,7 +17,7 @@ Aplicação desktop para administrar **alunos, atividades e notas**. A tela Qt (
 - Consultar notas e calcular média de um aluno.
 - Manter os dados nos arquivos JSON após fechar e abrir novamente.
 
-**Regra da média:** para permitir atividades com notas máximas diferentes, cada nota é convertida para a escala de 0 a 10 (`nota / valor_maximo * 10`). A média é a soma dos valores convertidos dividida pelo número de atividades **com nota cadastrada**. Atividades não avaliadas não contam. Se não houver notas, retorna `null`/“sem notas”. Exemplo: 8/10 e 3/5 resultam em média **7,00/10**.
+**Regra da média:** para permitir atividades com notas máximas diferentes, cada nota é convertida para a escala de 0 a 10 (`nota / valor_maximo * 10`). A média é a soma dos valores convertidos dividida pelo número de atividades **com nota cadastrada**. Atividades não avaliadas não contam. Se não houver notas, retorna `null`/“sem notas”. Exemplo: 8/10 e 3/5 resultam em média **7,00/10**. Uma nota 8,5 em uma atividade que vale 8,5 equivale a 10/10.
 
 ## 2. Estrutura de pastas
 
@@ -80,15 +80,18 @@ O código-fonte requer Python e bibliotecas no computador de desenvolvimento. **
 
 ## 4. Design Patterns implementados
 
-| Padrão | Onde está | Problema resolvido |
-|---|---|---|
-| **Repository** | `servidor/repository.py` (`RepositorioJSON`) | Esconde leitura e gravação de arquivos JSON do restante do servidor. |
-| **Facade** | `cliente/api_client.py` (`APIClient`) | Oferece métodos simples para a tela sem repetir código HTTP. |
-| **MVC (separação de responsabilidades)** | `servidor/models.py`, `cliente/janela.py`, `cliente/controlador.py` | Separa dados, elementos gráficos e ações dos botões; a lógica do negócio fica em `services.py`. |
+| Padrão | Categoria | Onde está | Problema resolvido |
+|---|---|---|---|
+| **Factory Method** | Criacional | `servidor/factories.py` (`FabricaRegistros` / `FabricaRegistrosPadrao`) | Centraliza a criação de `Aluno`, `Atividade` e `Nota`, desacoplando os modelos do serviço. |
+| **Facade** | Estrutural | `servidor/services.py` (`GerenciadorService`) e `cliente/api_client.py` (`APIClient`) | **No servidor:** reúne operações de alunos, atividades e boletim ocultando múltiplos repositórios e regras de concorrência.<br>**No cliente:** simplifica chamadas HTTP em métodos orientados a domínio. |
+| **Strategy** | Comportamental | `servidor/strategies.py` (`EstrategiaMedia`, `MediaNormalizada`, `MediaPonderadaPorValorMaximo`, `MediaAritmeticaDireta`) | Permite substituir ou configurar dinamicamente o algoritmo de cálculo de médias na API e na interface Qt. |
+| **Repository** | Estrutural / Arquitetural | `servidor/repository.py` (`RepositorioJSON`) | Esconde leitura e gravação atômica de arquivos JSON do restante do servidor. |
+| **MVC** | Arquitetural | `servidor/models.py`, `cliente/janela.py`, `cliente/controlador.py` | Separa dados, interface gráfica e lógica de controle dos eventos. |
 
-Fluxo de exemplo: **Cadastrar aluno** → `Controlador.criar_aluno` → `APIClient.criar_aluno` → `POST /alunos` → `GerenciadorService.criar_aluno` → `RepositorioJSON.adicionar` → `alunos.json`.
+Fluxo de exemplo: **Cadastrar aluno** → `Controlador.criar_aluno` → `APIClient.criar_aluno` → `POST /alunos` → `GerenciadorService.criar_aluno` → `RepositorioJSON.adicionar` → `FabricaRegistrosPadrao.criar_aluno` → `alunos.json`.
 
-Veja os diagramas das classes em [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md).
+- Diagramas de classes em [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md).
+- Cenários oficiais de teste T8.1 a T8.4 em [docs/PLANO_DE_TESTES.md](docs/PLANO_DE_TESTES.md).
 
 ## 5. Endpoints
 
@@ -102,7 +105,8 @@ Veja os diagramas das classes em [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md).
 | GET / POST | `/notas` | Listar / registrar notas |
 | GET / PUT / DELETE | `/notas/<id>` | Consultar / editar / excluir nota |
 | GET | `/alunos/<id>/notas` | Consultar notas do aluno |
-| GET | `/alunos/<id>/media` | Consultar média do aluno |
+| GET | `/alunos/<id>/media` | Consultar média do aluno (aceita `?criterio=normalizada\|ponderada\|direta`) |
+| GET | `/estrategias-media` | Listar estratégias de cálculo disponíveis |
 
 **Exemplo — cadastrar aluno:**
 

@@ -3,8 +3,9 @@ from dataclasses import asdict
 from math import isfinite
 from threading import RLock
 
-from servidor.models import Aluno, Atividade, Nota
+from servidor.factories import FabricaRegistros, FabricaRegistrosPadrao
 from servidor.repository import RepositorioJSON
+from servidor.strategies import EstrategiaMedia, MediaNormalizada
 
 
 class ErroNegocio(Exception):
@@ -17,6 +18,14 @@ def texto_obrigatorio(valor, campo):
     if not isinstance(valor, str) or not valor.strip():
         raise ErroNegocio(f"{campo} é obrigatório.")
     return valor.strip()
+
+
+def matricula_valida(valor):
+    """Matrícula acadêmica: texto numérico, mantendo zeros à esquerda."""
+    matricula = texto_obrigatorio(valor, "Matrícula")
+    if not matricula.isdecimal():
+        raise ErroNegocio("Matrícula deve conter apenas números.")
+    return matricula
 
 
 def numero_positivo(valor, campo):
@@ -55,12 +64,35 @@ def id_valido(valor, campo):
 
 
 class GerenciadorService:
-    def __init__(self, diretorio_dados):
+    """Facade estrutural do domínio e Contexto comportamental do Strategy.
+
+    Reúne e orquestra as operações de alunos, atividades (avaliações), notas e
+    boletins, ocultando a complexidade dos múltiplos repositórios JSON, da
+    fábrica de criação de registros (Factory Method) e da estratégia de cálculo
+    (Strategy).
+    """
+
+    def __init__(self, diretorio_dados, fabrica=None, estrategia_media=None):
         pasta = diretorio_dados
         self.alunos = RepositorioJSON(pasta / "alunos.json")
         self.atividades = RepositorioJSON(pasta / "atividades.json")
         self.notas = RepositorioJSON(pasta / "notas.json")
+        self.fabrica = fabrica or FabricaRegistrosPadrao()
+        self.estrategia_media = estrategia_media or MediaNormalizada()
+        if not isinstance(self.fabrica, FabricaRegistros):
+            raise TypeError("fabrica deve implementar FabricaRegistros")
+        if not isinstance(self.estrategia_media, EstrategiaMedia):
+            raise TypeError("estrategia_media deve implementar EstrategiaMedia")
         self._lock = RLock()  # mantém as operações relacionadas coordenadas
+
+    def definir_estrategia_media(self, estrategia):
+        """Contexto do padrão Strategy: permite trocar a estratégia dinamicamente."""
+        from servidor.strategies import obter_estrategia
+        estrategia_instancia = obter_estrategia(estrategia)
+        if not isinstance(estrategia_instancia, EstrategiaMedia):
+            raise TypeError("estrategia deve implementar EstrategiaMedia")
+        self.estrategia_media = estrategia_instancia
+        return self.estrategia_media
 
     def listar_alunos(self):
         return self.alunos.listar()
@@ -73,16 +105,16 @@ class GerenciadorService:
 
     def criar_aluno(self, dados):
         nome = texto_obrigatorio(dados.get("nome"), "Nome")
-        matricula = texto_obrigatorio(dados.get("matricula"), "Matrícula")
+        matricula = matricula_valida(dados.get("matricula"))
         with self._lock:
             if any(a["matricula"] == matricula for a in self.alunos.listar()):
                 raise ErroNegocio("Matrícula já cadastrada.", 409)
             registro = self.alunos.adicionar({"nome": nome, "matricula": matricula})
-            return asdict(Aluno(**registro))
+            return asdict(self.fabrica.criar_aluno(registro))
 
     def editar_aluno(self, codigo, dados):
         nome = texto_obrigatorio(dados.get("nome"), "Nome")
-        matricula = texto_obrigatorio(dados.get("matricula"), "Matrícula")
+        matricula = matricula_valida(dados.get("matricula"))
         with self._lock:
             self.consultar_aluno(codigo)
             if any(a["id"] != codigo and a["matricula"] == matricula for a in self.alunos.listar()):
@@ -111,9 +143,10 @@ class GerenciadorService:
         if not isinstance(descricao, str):
             raise ErroNegocio("Descrição inválida.")
         maximo = numero_positivo(dados.get("valor_maximo"), "Valor máximo")
-        return asdict(Atividade(**self.atividades.adicionar({
+        registro = self.atividades.adicionar({
             "titulo": titulo, "descricao": descricao.strip(), "valor_maximo": maximo
-        })))
+        })
+        return asdict(self.fabrica.criar_atividade(registro))
 
     def editar_atividade(self, codigo, dados):
         titulo = texto_obrigatorio(dados.get("titulo"), "Título")
@@ -161,9 +194,10 @@ class GerenciadorService:
             valor = self.validar_nota(aluno_id, atividade_id, dados.get("valor"))
             if any(n["aluno_id"] == aluno_id and n["atividade_id"] == atividade_id for n in self.notas.listar()):
                 raise ErroNegocio("Aluno já possui nota nessa atividade. Use atualizar nota.", 409)
-            return asdict(Nota(**self.notas.adicionar({
+            registro = self.notas.adicionar({
                 "aluno_id": aluno_id, "atividade_id": atividade_id, "valor": valor
-            })))
+            })
+            return asdict(self.fabrica.criar_nota(registro))
 
     def editar_nota(self, codigo, dados):
         with self._lock:
@@ -193,9 +227,19 @@ class GerenciadorService:
                     })
             return retorno
 
-    def media_do_aluno(self, aluno_id):
+    def media_do_aluno(self, aluno_id, estrategia=None):
         notas = self.notas_do_aluno(aluno_id)
-        # Cada nota é proporcionalmente convertida para escala 0..10.
-        # Atividades não avaliadas não entram na média.
-        media = round(sum(n["valor"] / n["valor_maximo"] * 10 for n in notas) / len(notas), 2) if notas else None
-        return {"aluno_id": aluno_id, "media": media, "quantidade_notas": len(notas), "escala": "0 a 10"}
+        if estrategia:
+            from servidor.strategies import obter_estrategia
+            estrategia_usada = obter_estrategia(estrategia)
+        else:
+            estrategia_usada = self.estrategia_media
+        media = estrategia_usada.calcular(notas)
+        return {
+            "aluno_id": aluno_id,
+            "media": media,
+            "quantidade_notas": len(notas),
+            "escala": getattr(estrategia_usada, "escala", "0 a 10"),
+            "criterio": getattr(estrategia_usada, "nome", "Normalizada"),
+            "criterio_codigo": getattr(estrategia_usada, "codigo", "normalizada"),
+        }

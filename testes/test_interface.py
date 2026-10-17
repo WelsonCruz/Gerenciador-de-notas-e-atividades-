@@ -27,6 +27,22 @@ class ClienteSimulado:
     def listar_notas(self):
         return []
 
+    def notas_do_aluno(self, aluno_id):
+        return [
+            {"atividade": "Prova", "valor": 10, "valor_maximo": 10, "nota_normalizada": 10},
+            {"atividade": "Trabalho", "valor": 8.5, "valor_maximo": 10, "nota_normalizada": 8.5},
+        ]
+
+    def media_do_aluno(self, aluno_id, criterio=None):
+        if criterio == "direta":
+            return {
+                "media": 9.25,
+                "quantidade_notas": 2,
+                "criterio": "Aritmética direta dos pontos",
+                "escala": "Pontos brutos",
+            }
+        return {"media": 9.25, "quantidade_notas": 2, "criterio": "Normalizada", "escala": "0 a 10"}
+
     def criar_aluno(self, nome, matricula):
         aluno = {"id": len(self.alunos) + 1, "nome": nome, "matricula": matricula}
         self.alunos.append(aluno)
@@ -43,14 +59,27 @@ class TesteInterface(unittest.TestCase):
         api = ClienteSimulado()
         janela = JanelaPrincipal()
         _controlador = Controlador(janela, api)
+        self.assertEqual(janela.card_alunos.valor.text(), "0")
         janela.aluno_nome.setText("Ana")
         janela.aluno_matricula.setText("2026001")
         janela.btn_aluno_criar.click()
         self.assertEqual(api.alunos[0]["nome"], "Ana")
         self.assertEqual(janela.tabela_alunos.rowCount(), 1)
         self.assertEqual(janela.tabela_alunos.item(0, 2).text(), "2026001")
+        self.assertEqual(janela.card_alunos.valor.text(), "1")
         janela.close()
 
+    def test_consulta_exibe_media_das_duas_notas(self):
+        api = ClienteSimulado()
+        api.alunos.append({"id": 1, "nome": "Ana", "matricula": "100"})
+        janela = JanelaPrincipal()
+        _controlador = Controlador(janela, api)
+        janela.consulta_aluno.setCurrentIndex(0)
+        janela.btn_consultar.click()
+        self.assertEqual(janela.label_media.text(), "Média final: 9.25 / 10")
+        self.assertEqual(janela.label_quantidade.text(), "2 nota(s) considerada(s) no cálculo")
+        self.assertEqual(janela.tabela_consulta.rowCount(), 2)
+        janela.close()
 
 if __name__ == "__main__":
     unittest.main()

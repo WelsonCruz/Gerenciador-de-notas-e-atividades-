@@ -1,6 +1,8 @@
 # Diagramas de classes — estrutura implementada
 
-Os diagramas usam a sintaxe **Mermaid** e aparecem automaticamente no GitHub.
+Os diagramas usam a sintaxe **Mermaid** e aparecem automaticamente no GitHub. Mermaid é uma boa escolha para este projeto porque o diagrama fica versionado como texto junto ao código, pode ser revisado por diff e é renderizado pelo GitHub. A documentação oficial suporta classes, interfaces, herança, dependências e cardinalidades.
+
+Para visualizar ou editar fora do GitHub, use o [Mermaid Live Editor](https://mermaid.live/). Não é necessário instalar uma biblioteca no projeto: os blocos Mermaid já são suficientes para a documentação.
 
 ## Servidor
 
@@ -23,6 +25,21 @@ classDiagram
     +int atividade_id
     +float valor
   }
+  class FabricaRegistros {
+    <<abstract>>
+    +criar_aluno(registro)
+    +criar_atividade(registro)
+    +criar_nota(registro)
+    +criar(tipo, registro)
+  }
+  class FabricaRegistrosPadrao
+  class EstrategiaMedia {
+    <<abstract>>
+    +calcular(notas)
+  }
+  class MediaNormalizada
+  class MediaPonderadaPorValorMaximo
+  class MediaAritmeticaDireta
   class RepositorioJSON {
     +Path caminho
     +listar()
@@ -33,22 +50,34 @@ classDiagram
     +excluir_se(predicado)
   }
   class GerenciadorService {
+    <<Facade>>
     +RepositorioJSON alunos
     +RepositorioJSON atividades
     +RepositorioJSON notas
+    +FabricaRegistros fabrica
+    +EstrategiaMedia estrategia_media
+    +definir_estrategia_media(estrategia)
     +criar_aluno(dados)
     +criar_atividade(dados)
     +criar_nota(dados)
     +notas_do_aluno(id)
-    +media_do_aluno(id)
+    +media_do_aluno(id, estrategia)
   }
   GerenciadorService --> RepositorioJSON : usa 3 repositórios
-  GerenciadorService ..> Aluno : cria
-  GerenciadorService ..> Atividade : cria
-  GerenciadorService ..> Nota : cria
+  GerenciadorService --> FabricaRegistros : usa Factory Method
+  FabricaRegistros <|-- FabricaRegistrosPadrao
+  FabricaRegistrosPadrao ..> Aluno : cria
+  FabricaRegistrosPadrao ..> Atividade : cria
+  FabricaRegistrosPadrao ..> Nota : cria
+  GerenciadorService --> EstrategiaMedia : atua como Contexto do Strategy
+  EstrategiaMedia <|-- MediaNormalizada
+  EstrategiaMedia <|-- MediaPonderadaPorValorMaximo
+  EstrategiaMedia <|-- MediaAritmeticaDireta
 ```
 
 `create_app()` em `app.py` é uma **função-fábrica Flask**, não uma classe. As rotas chamam `GerenciadorService`; este utiliza `RepositorioJSON` para persistência.
+
+O projeto 8 também demonstra o Factory Method para criar os modelos de domínio e o Strategy para permitir critérios diferentes de cálculo de média.
 
 ## Cliente
 
