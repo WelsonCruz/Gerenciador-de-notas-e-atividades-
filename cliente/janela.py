@@ -181,10 +181,10 @@ class JanelaPrincipal(QMainWindow):
                 color: #344b65;
                 border: none;
                 border-bottom: 1px solid #d8e1ec;
-                padding: 8px;
+                padding: 8px 12px;
                 font-weight: 700;
             }
-            QTableWidget::item { padding: 5px; }
+            QTableWidget::item { padding: 6px 12px; }
             QTableWidget::item:selected {
                 background: #cfe5f7;
                 color: #173b67;
@@ -219,6 +219,7 @@ class JanelaPrincipal(QMainWindow):
         # última coluna ocupava o espaço livre e os cabeçalhos podiam parecer
         # deslocados ao abrir uma aba ou redimensionar a janela.
         tabela.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        tabela.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         tabela.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         tabela.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         tabela.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -226,14 +227,10 @@ class JanelaPrincipal(QMainWindow):
         tabela.verticalHeader().setVisible(False)
         tabela.setShowGrid(False)
         tabela.setMinimumHeight(220)
-        colunas_centralizadas = {"ID", "Matrícula", "Nota", "Máxima", "Nota máxima", "Nota obtida", "Equivalente / 10"}
-        for i, col in enumerate(colunas):
+        for i in range(len(colunas)):
             header_item = tabela.horizontalHeaderItem(i)
             if header_item:
-                if col in colunas_centralizadas:
-                    header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                else:
-                    header_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         return tabela
 
     @staticmethod
@@ -407,11 +404,7 @@ class JanelaPrincipal(QMainWindow):
         for numero_linha, linha in enumerate(linhas):
             for numero_coluna, valor in enumerate(linha):
                 item = QTableWidgetItem(str(valor))
-                header_item = tabela.horizontalHeaderItem(numero_coluna)
-                if header_item and (int(header_item.textAlignment()) & int(Qt.AlignmentFlag.AlignHCenter)):
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                else:
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
                 tabela.setItem(numero_linha, numero_coluna, item)
 
     @staticmethod
