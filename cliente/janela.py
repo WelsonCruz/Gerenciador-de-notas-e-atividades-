@@ -219,6 +219,7 @@ class JanelaPrincipal(QMainWindow):
         # última coluna ocupava o espaço livre e os cabeçalhos podiam parecer
         # deslocados ao abrir uma aba ou redimensionar a janela.
         tabela.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        tabela.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         tabela.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         tabela.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         tabela.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -399,8 +400,7 @@ class JanelaPrincipal(QMainWindow):
         for numero_linha, linha in enumerate(linhas):
             for numero_coluna, valor in enumerate(linha):
                 item = QTableWidgetItem(str(valor))
-                if numero_coluna == 0:
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 tabela.setItem(numero_linha, numero_coluna, item)
 
     @staticmethod
