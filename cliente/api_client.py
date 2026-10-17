@@ -85,5 +85,18 @@ class APIClient:
     def notas_do_aluno(self, aluno_id):
         return self._requisitar("GET", f"/alunos/{aluno_id}/notas")
 
-    def media_do_aluno(self, aluno_id):
-        return self._requisitar("GET", f"/alunos/{aluno_id}/media")
+    def media_do_aluno(self, aluno_id, criterio=None):
+        caminho = f"/alunos/{aluno_id}/media"
+        if criterio:
+            caminho += f"?criterio={criterio}"
+        return self._requisitar("GET", caminho)
+
+    def listar_estrategias_media(self):
+        try:
+            return self._requisitar("GET", "/estrategias-media")
+        except ErroAPI:
+            return [
+                {"codigo": "normalizada", "nome": "Normalizada (0 a 10 - padrão)"},
+                {"codigo": "ponderada", "nome": "Ponderada pelo valor máximo"},
+                {"codigo": "direta", "nome": "Aritmética direta dos pontos"},
+            ]

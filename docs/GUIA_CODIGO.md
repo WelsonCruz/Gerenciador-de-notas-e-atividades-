@@ -4,12 +4,14 @@
 
 1. **`servidor/models.py` — Modelos:** classes `Aluno`, `Atividade` e `Nota` representam os dados. Cada um tem um identificador `id`.
 2. **`servidor/repository.py` — Repository:** a classe `RepositorioJSON` faz `listar`, `buscar`, `adicionar`, `atualizar` e `excluir`. As outras partes não precisam saber como um JSON é salvo.
-3. **`servidor/services.py` — Regras:** `GerenciadorService` valida os dados. Por exemplo, matrícula não pode repetir e nota não pode exceder a máxima.
-4. **`servidor/app.py` — Servidor:** recebe as requisições HTTP, chama o service e devolve um JSON. Não faz a validação principal.
-5. **`cliente/api_client.py` — Facade:** transforma operações como `criar_aluno()` em chamadas HTTP. O Controller não precisa montar URLs nem interpretar respostas.
-6. **`cliente/janela.py` — View:** constrói telas, campos, botões e tabelas usando Qt. Não lê arquivos e não conhece as regras do sistema.
-7. **`cliente/controlador.py` — Controller:** recebe o clique do botão, lê os valores da tela, chama `APIClient` e atualiza as tabelas.
-8. **`cliente/main.py` — Inicialização:** abre o aplicativo e, se necessário, inicia o servidor local automaticamente.
+3. **`servidor/factories.py` — Factory Method:** `FabricaRegistrosPadrao` cria `Aluno`, `Atividade` e `Nota`; o serviço pode receber outra fábrica sem mudar suas regras.
+4. **`servidor/strategies.py` — Strategy:** `MediaNormalizada` calcula a média atual, mas outra estratégia pode ser injetada para pesos ou critérios diferentes.
+5. **`servidor/services.py` — Regras:** `GerenciadorService` valida os dados. Por exemplo, matrícula não pode repetir e nota não pode exceder a máxima.
+6. **`servidor/app.py` — Servidor:** recebe as requisições HTTP, chama o service e devolve um JSON. Não faz a validação principal.
+7. **`cliente/api_client.py` — Facade:** transforma operações como `criar_aluno()` em chamadas HTTP. O Controller não precisa montar URLs nem interpretar respostas.
+8. **`cliente/janela.py` — View:** constrói telas, campos, botões e tabelas usando Qt. Não lê arquivos e não conhece as regras do sistema.
+9. **`cliente/controlador.py` — Controller:** recebe o clique do botão, lê os valores da tela, chama `APIClient` e atualiza as tabelas.
+10. **`cliente/main.py` — Inicialização:** abre o aplicativo e, se necessário, inicia o servidor local automaticamente.
 
 ## Como o fluxo funciona (exemplo real)
 
@@ -24,7 +26,7 @@ Você escreve **Ana** e **2026001** e clica em “Cadastrar” na aba Alunos.
 
 ## Regras simples (para explicar na apresentação)
 
-- **Aluno:** nome e matrícula obrigatórios; duas pessoas não podem ter a mesma matrícula.
+- **Aluno:** nome e matrícula numérica obrigatórios; zeros à esquerda são aceitos e duas pessoas não podem ter a mesma matrícula.
 - **Atividade:** título obrigatório e nota máxima maior que zero.
 - **Nota:** aluno e atividade precisam existir; valor entre zero e a nota máxima; somente uma nota por aluno e atividade.
 - **Média:** converte cada nota para a escala de dez, faz a média entre notas lançadas. Sem nota = “sem notas”.

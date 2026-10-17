@@ -8,6 +8,7 @@ from pathlib import Path
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication, QMessageBox
 from cliente.api_client import APIClient, ErroAPI
 from cliente.controlador import Controlador
@@ -58,6 +59,10 @@ def iniciar_servidor_se_necessario(api):
 
 def main():
     app = QApplication(sys.argv)
+    # Base consistente entre Windows e outros ambientes; a View aplica os
+    # ajustes locais do tema por meio de seletores específicos.
+    app.setStyle("Fusion")
+    app.setFont(QFont("Segoe UI", 10))
     app.setApplicationName("Gerenciador de Notas e Atividades")
     api = APIClient(timeout=1)
     processo = None

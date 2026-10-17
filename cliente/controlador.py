@@ -63,6 +63,7 @@ class Controlador:
             self.atividades = self.api.listar_atividades()
             self.notas = self.api.listar_notas()
             j = self.janela
+            j.atualizar_resumo(len(self.alunos), len(self.atividades), len(self.notas))
             j.preencher_tabela(j.tabela_alunos, [
                 (a["id"], a["nome"], a["matricula"]) for a in self.alunos
             ])
@@ -80,6 +81,10 @@ class Controlador:
             j.preencher_combo(j.nota_aluno, self.alunos, "nome")
             j.preencher_combo(j.consulta_aluno, self.alunos, "nome")
             j.preencher_combo(j.nota_atividade, self.atividades, "titulo")
+            if hasattr(j, "consulta_criterio"):
+                estrategias = getattr(self.api, "listar_estrategias_media", lambda: [])()
+                if estrategias:
+                    j.preencher_combo(j.consulta_criterio, estrategias, "nome", id_chave="codigo")
             self.atualizar_limite_nota()
         return self.executar(carregar)
 
@@ -229,15 +234,28 @@ class Controlador:
             QMessageBox.information(j, "Nenhum aluno", "Cadastre um aluno antes de consultar.")
             return
 
+        criterio = j.consulta_criterio.currentData() if hasattr(j, "consulta_criterio") else None
+
         def carregar():
             notas = self.api.notas_do_aluno(codigo)
-            media = self.api.media_do_aluno(codigo)
+            try:
+                media = self.api.media_do_aluno(codigo, criterio=criterio) if criterio else self.api.media_do_aluno(codigo)
+            except TypeError:
+                media = self.api.media_do_aluno(codigo)
             j.preencher_tabela(j.tabela_consulta, [
                 (n["atividade"], f'{n["valor"]:g}', f'{n["valor_maximo"]:g}', f'{n["nota_normalizada"]:.2f}')
                 for n in notas
             ])
             if media["media"] is None:
-                j.label_media.setText("Média: sem notas cadastradas")
+                j.label_media.setText("Média final: sem notas")
             else:
-                j.label_media.setText(f'Média: {media["media"]:.2f} / 10  |  {media["quantidade_notas"]} nota(s)')
+                escala = media.get("escala", "0 a 10")
+                sufixo = "/ 10" if escala == "0 a 10" else escala.lower()
+                j.label_media.setText(f'Média final: {media["media"]:.2f} {sufixo}')
+            j.label_quantidade.setText(
+                f'{media["quantidade_notas"]} nota(s) considerada(s) no cálculo'
+            )
+            if hasattr(j, "label_criterio"):
+                nome_criterio = media.get("criterio", "Padrão")
+                j.label_criterio.setText(f"Critério: {nome_criterio} (Escala: {escala})")
         self.executar(carregar)

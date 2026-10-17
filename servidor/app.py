@@ -120,7 +120,24 @@ def create_app(diretorio_dados=None):
 
     @app.get("/alunos/<int:codigo>/media")
     def consultar_media(codigo):
-        return jsonify(service.media_do_aluno(codigo))
+        criterio = request.args.get("criterio")
+        try:
+            return jsonify(service.media_do_aluno(codigo, estrategia=criterio))
+        except ValueError as erro:
+            raise ErroNegocio(str(erro)) from erro
+
+    @app.get("/estrategias-media")
+    def listar_estrategias_media():
+        from servidor.strategies import ESTRATEGIAS_DISPONIVEIS
+        return jsonify([
+            {
+                "codigo": est.codigo,
+                "nome": est.nome,
+                "descricao": est.descricao,
+                "escala": est.escala,
+            }
+            for est in (cls() for cls in ESTRATEGIAS_DISPONIVEIS.values())
+        ])
 
     return app
 

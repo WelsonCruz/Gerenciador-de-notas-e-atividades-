@@ -4,7 +4,7 @@
 
 | ID | Requisito | Critério de aceite verificável |
 |---|---|---|
-| RF01 | Cadastrar aluno | Nome e matrícula válidos criam registro e retornam HTTP 201. |
+| RF01 | Cadastrar aluno | Nome e matrícula numérica válidos criam registro e retornam HTTP 201. |
 | RF02 | Listar, editar e excluir aluno | Alterações aparecem na interface e na API; exclusão remove suas notas. |
 | RF03 | Impedir matrícula duplicada | POST/PUT com matrícula já utilizada por outro aluno retorna HTTP 409. |
 | RF04 | Cadastrar, listar, editar e excluir atividade | Cada atividade tem título e nota máxima positiva. |
@@ -22,7 +22,7 @@
 | RNF01 | Servidor Flask e cliente Qt em módulos separados | Pastas `servidor/` e `cliente/` presentes. |
 | RNF02 | Armazenamento local JSON, sem banco, nuvem e APIs externas | Somente arquivos `dados/*.json` armazenam registros. |
 | RNF03 | Erros compreensíveis | API retorna JSON com `erro`; a tela apresenta uma caixa de aviso. |
-| RNF04 | Código com Design Patterns demonstráveis | Repository, Facade e organização MVC apontam a classes concretas. |
+| RNF04 | Código com Design Patterns demonstráveis | O projeto 8 demonstra Factory Method, Facade e Strategy por classes concretas e testes de comportamento; Repository e MVC complementam a organização. |
 | RNF05 | Documentação pública | README, diagramas e testes incluídos no repositório GitHub público. |
 | RNF06 | Execução sem instalar softwares no computador de apresentação | Build portátil Windows executado e validado sem Python instalado (necessita compilar antes). |
 | RNF07 | Servidor local | API escuta apenas em `127.0.0.1:8765`; sem exposição externa. |
