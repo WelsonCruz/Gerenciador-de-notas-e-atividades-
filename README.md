@@ -1,7 +1,7 @@
 # Gerenciador de Notas e Atividades de Alunos
 
 **Disciplina:** Paradigmas de Programação  
-**Turma:** CC5AN  
+**Turma:** CC5A
 **Professor:** Alex Carneiro  
 **Tecnologias:** Python, Flask, PySide6 (Qt) e JSON local
 
