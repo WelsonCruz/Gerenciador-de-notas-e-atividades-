@@ -10,6 +10,8 @@ Ana Carolina Gonçalves de Melo
 
 Daniel Fernandes Santos 
 
+Daniel Rodrigues da Costa
+
 Davi Patricio Gimenes 
 
 Ramon Barbosa de Sousa
