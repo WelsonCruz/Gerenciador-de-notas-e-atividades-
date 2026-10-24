@@ -5,6 +5,16 @@
 **Professor:** Alex Carneiro  
 **Tecnologias:** Python, Flask, PySide6 (Qt) e JSON local
 
+Integrantes do Projeto:
+
+Daniel Fernandes Santos 
+
+Davi Patricio Gimenes 
+
+Ramon Barbosa de Sousa
+
+Welson Ferreira da Cruz 
+
 ## 1. Visão geral
 
 Aplicação desktop para administrar **alunos, atividades e notas**. A tela Qt (cliente) envia requisições HTTP para um servidor Flask, que valida os dados e os grava em arquivos JSON locais. Não utiliza banco de dados, nuvem, IA ou APIs de terceiros.
