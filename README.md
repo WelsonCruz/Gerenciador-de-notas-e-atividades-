@@ -6,6 +6,7 @@
 **Tecnologias:** Python, Flask, PySide6 (Qt) e JSON local
 
 Integrantes do Projeto:
+
 Ana Carolina Gonçalves de Melo
 
 Daniel Fernandes Santos 
